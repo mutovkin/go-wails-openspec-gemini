@@ -66,9 +66,24 @@ The application strictly follows Hexagonal Architecture to decouple business log
 - **Frontend Tests**: Basic component testing for UI interaction.
 - **Verification**: Run `make fmt` and `make lint` after completing each OpenSpec task to ensure code quality and formatting compliance.
 
-### Git Workflow
-- Feature branches.
-- Commits follow Conventional Commits (e.g., `feat:`, `fix:`, `docs:`, `chore:`).
+### Git Workflow & Release Process
+- **Git Flow**:
+    - `develop`: Default branch for PRs.
+    - `master`: Stable release branch (read-only, updated via automation).
+    - **Feature Branches**: `feature/name` -> Merge to `develop` (Squash).
+    - **Hotfix Branches**: `hotfix/name` -> Merge to `master` (Squash) -> Auto-rebase `develop`.
+- **Commits**: Follow Conventional Commits (e.g., `feat:`, `fix:`, `docs:`, `chore:`).
+- **Rebasing**: Feature branches must be rebased on `develop` before merging.
+- **Releases**:
+    - Triggered manually via GitHub Actions (`workflow_dispatch`).
+    - Automated tagging and fast-forward merge from `develop` to `master`.
+    - Automated artifact build and GitHub Release creation.
+
+### Repository Configuration
+- **Branch Protection**:
+    - `master` and `develop`: Require Pull Request reviews.
+    - **Status Checks**: CI (Lint, Test, Build) must pass before merging.
+    - **Linear History**: Required.
 
 ## Domain Context
 - **6/49 Lottery**: A standard lottery game where 6 distinct numbers are drawn from a range of 1 to 49.

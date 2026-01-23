@@ -50,7 +50,14 @@ test: ## Run unit tests
 lint: ## Run golangci-lint
 	golangci-lint run
 
-install-tools: install-fmt-tools ## Install development tools (golangci-lint)
+lint-actions: ## Run actionlint to validate GitHub Actions
+	actionlint
+
+install-actionlint: ## Install actionlint
+	@echo "Installing actionlint..."
+	go install github.com/rhysd/actionlint/cmd/actionlint@latest
+
+install-tools: install-fmt-tools install-actionlint ## Install development tools (golangci-lint, actionlint)
 	@echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..."
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@echo "Checking for Wails..."
