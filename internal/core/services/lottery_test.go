@@ -46,7 +46,7 @@ func TestGenerateTicket_RNGError(t *testing.T) {
 
 func TestGenerateTicket_DomainValidationFail(t *testing.T) {
 	// Mock returns invalid numbers (duplicates)
-	invalidNums := []int{1, 1, 2, 3, 4, 5} 
+	invalidNums := []int{1, 1, 2, 3, 4, 5}
 	mockRNG := &MockRandomProvider{Numbers: invalidNums, Err: nil}
 	service := services.NewLotteryService(mockRNG)
 

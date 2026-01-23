@@ -1,7 +1,7 @@
 # Makefile for 6/49 Lottery Picker (Wails + Hexagonal)
 
 BINARY_NAME := lottery-picker
-GOLANGCI_LINT_VERSION := v1.63.4 # User requested 2.8, but 1.x is current stable. Adjust if needed.
+GOLANGCI_LINT_VERSION := v2.8.0 # Current as of right now
 
 .PHONY: all build dev test lint install-tools help
 
@@ -11,25 +11,46 @@ help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+install-fmt-tools: ## Install Go formatting tools
+	@echo "Installing code formatting tools (golines, goimports, gofumpt)..."
+	go install github.com/segmentio/golines@latest
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install mvdan.cc/gofumpt@latest
+
+fmt: ## Format Go source code
+	gofumpt -w   ./frontend ./internal/
+	golines -w   ./frontend ./internal/
+	goimports -w ./frontend ./internal/
+
+mod-upgrade: ## Upgrade Go dependencies
+	go get -u ./...
 
 dev: ## Run Wails in development mode
 	wails dev
 
-build: ## Build the production binary
+generate: ## Generate Wails bindings
+	go generate ./...
+
+build: generate ## Build the production binary
 	wails build
 
+cover: ## Run tests with coverage
+	go test -coverprofile=cover.out ./...
+	go tool cover -func=cover.out
+
 test: ## Run unit tests
-	go test -v ./internal/... ./cmd/...
+	go test ./... -v
 
 lint: ## Run golangci-lint
 	golangci-lint run
 
-install-tools: ## Install development tools (golangci-lint)
+install-tools: install-fmt-tools ## Install development tools (golangci-lint)
 	@echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..."
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@echo "Checking for Wails..."
-	@which wails > /dev/null || echo "Wails not found. Please install via: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
+	@which wails > /dev/null || echo "Wails not found, installing..." || go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
 clean: ## Clean build artifacts
-	rm -rf build/bin
+	rm -rf build
