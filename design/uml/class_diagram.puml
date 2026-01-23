@@ -1,0 +1,54 @@
+@startuml
+allow_mixing
+
+package "Core Domain" {
+    class Ticket {
+        +Numbers: []int
+        +Validate(): error
+        +String(): string
+    }
+}
+
+package "Core Ports" {
+    interface TicketGenerator {
+        +Generate(): (Ticket, error)
+    }
+
+    interface RandomProvider {
+        +GetSixUniqueNumbers(min, max int): ([]int, error)
+    }
+}
+
+package "Core Services" {
+    class LotteryService {
+        -rng: RandomProvider
+        +Generate(): (Ticket, error)
+    }
+}
+
+package "Adapters" {
+    class WailsApp {
+        -service: TicketGenerator
+        +GenerateTicket(): TicketDTO
+    }
+
+    class CryptoRandom {
+        +GetSixUniqueNumbers(min, max int): ([]int, error)
+    }
+}
+
+package "Frontend" {
+    object VueComponent
+}
+
+' Relationships
+LotteryService ..|> TicketGenerator
+LotteryService --> RandomProvider : uses
+LotteryService --> Ticket : creates
+
+CryptoRandom ..|> RandomProvider
+
+WailsApp --> TicketGenerator : uses
+VueComponent --> WailsApp : calls via Bridge
+
+@enduml
