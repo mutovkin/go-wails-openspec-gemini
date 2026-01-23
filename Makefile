@@ -58,3 +58,11 @@ install-tools: install-fmt-tools ## Install development tools (golangci-lint)
 
 clean: ## Clean build artifacts
 	rm -rf build
+
+plantuml:
+	@rm -f design/images/uml/*.png
+	plantuml -DPLANTUML_LIMIT_SIZE=16384 design/uml/ -o ../images/uml/ -tpng
+
+plantuml-svg:
+	@rm -f design/images/uml/*.svg
+	plantuml -DPLANTUML_LIMIT_SIZE=16384 design/uml/ -o ../images/uml/ -tsvg
