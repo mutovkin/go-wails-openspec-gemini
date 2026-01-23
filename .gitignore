@@ -1,0 +1,8 @@
+bin/
+build/
+frontend/dist/
+frontend/node_modules/
+frontend/wailsjs/
+!frontend/wailsjs/go/
+!frontend/wailsjs/runtime/
+.DS_Store

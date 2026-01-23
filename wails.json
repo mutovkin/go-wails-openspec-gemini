@@ -1,0 +1,15 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "lottery-picker",
+  "outputfilename": "lottery-picker",
+  "frontend:dir": "./frontend",
+  "wailsjsdir": "./frontend",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Serguei Moutovkin",
+    "email": "mutovkin@users.noreply.github.com"
+  }
+}
