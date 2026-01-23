@@ -13,7 +13,7 @@ A modern GUI application for generating random 6/49 lottery tickets. The applica
 - **Frontend**: [Vue.js](https://vuejs.org/) (Composition API)
 - **UI Styling**: [Vuetify 3](https://vuetifyjs.com/) (Material Design 3)
 - **Architecture**: Hexagonal (Ports & Adapters)
-- **Development Process**: [OpenSpec](https://openspec.ai) (Spec-driven development)
+- **Development Process**: [OpenSpec](https://openspec.dev/) (Spec-driven development)
 
 ## Architecture
 
@@ -57,21 +57,25 @@ For more details, see [design/architecture.md](design/architecture.md).
 ### Installation & Development
 
 1. **Install tools**:
+
    ```bash
    make install-tools
    ```
 
 2. **Run in development mode**:
+
    ```bash
    make dev
    ```
 
 3. **Build production binary**:
+
    ```bash
    make build
    ```
 
 4. **Run tests**:
+
    ```bash
    make test
    ```
@@ -79,6 +83,7 @@ For more details, see [design/architecture.md](design/architecture.md).
 ## Development with OpenSpec
 
 This project uses **OpenSpec** for all changes. Before implementing a feature:
+
 1. Create a proposal in `openspec/changes/`.
 2. Define requirements and scenarios.
 3. Once approved, implement following the tasks list.

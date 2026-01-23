@@ -1,3 +1,4 @@
+// Package ports defines the input and output interfaces (Hexagonal Architecture) for the application.
 package ports
 
 import "lottery-picker/internal/core/domain"

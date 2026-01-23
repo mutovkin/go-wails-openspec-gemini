@@ -1,8 +1,28 @@
+// Package domain contains the core business entities and logic for the lottery application.
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"sort"
+)
+
+const (
+	// TicketSize is the required number of integers in a ticket.
+	TicketSize = 6
+	// MinNumber is the minimum allowed value for a lottery number.
+	MinNumber = 1
+	// MaxNumber is the maximum allowed value for a lottery number.
+	MaxNumber = 49
+)
+
+var (
+	// ErrInvalidCount is returned when the ticket has the wrong number of values.
+	ErrInvalidCount = errors.New("ticket must have exactly 6 numbers")
+	// ErrOutOfRange is returned when a number is outside the 1-49 range.
+	ErrOutOfRange = errors.New("number is out of range")
+	// ErrDuplicate is returned when a duplicate number is found.
+	ErrDuplicate = errors.New("duplicate number found")
 )
 
 // Ticket represents a set of 6/49 lottery numbers.
@@ -12,30 +32,35 @@ type Ticket struct {
 
 // NewTicket creates a new Ticket and validates it.
 func NewTicket(numbers []int) (*Ticket, error) {
-	t := &Ticket{Numbers: numbers}
-	if err := t.Validate(); err != nil {
+	ticket := &Ticket{Numbers: numbers}
+	if err := ticket.Validate(); err != nil {
 		return nil, err
 	}
+
 	// Sort numbers for consistent display/storage
-	sort.Ints(t.Numbers)
-	return t, nil
+	sort.Ints(ticket.Numbers)
+
+	return ticket, nil
 }
 
 // Validate ensures the ticket follows 6/49 rules.
-func (t *Ticket) Validate() error {
-	if len(t.Numbers) != 6 {
-		return fmt.Errorf("ticket must have exactly 6 numbers, got %d", len(t.Numbers))
+func (ticket *Ticket) Validate() error {
+	if len(ticket.Numbers) != TicketSize {
+		return fmt.Errorf("%w: got %d", ErrInvalidCount, len(ticket.Numbers))
 	}
 
 	seen := make(map[int]bool)
-	for _, n := range t.Numbers {
-		if n < 1 || n > 49 {
-			return fmt.Errorf("number %d is out of range (1-49)", n)
+
+	for _, number := range ticket.Numbers {
+		if number < MinNumber || number > MaxNumber {
+			return fmt.Errorf("%w: %d (1-49)", ErrOutOfRange, number)
 		}
-		if seen[n] {
-			return fmt.Errorf("duplicate number %d found", n)
+
+		if seen[number] {
+			return fmt.Errorf("%w: %d", ErrDuplicate, number)
 		}
-		seen[n] = true
+
+		seen[number] = true
 	}
 
 	return nil

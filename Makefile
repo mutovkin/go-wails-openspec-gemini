@@ -20,9 +20,8 @@ install-fmt-tools: ## Install Go formatting tools
 	go install mvdan.cc/gofumpt@latest
 
 fmt: ## Format Go source code
-	gofumpt -w   ./frontend ./internal/
-	golines -w   ./frontend ./internal/
-	goimports -w ./frontend ./internal/
+	@echo "Formatting code..."
+	@golangci-lint run --fix --issues-exit-code=0
 
 mod-upgrade: ## Upgrade Go dependencies
 	go get -u ./...
@@ -30,10 +29,15 @@ mod-upgrade: ## Upgrade Go dependencies
 dev: ## Run Wails in development mode
 	wails dev
 
+deps: ## Install Go module dependencies
+	@echo "Installing dependencies..."
+	@go mod download
+	@go mod tidy
+
 generate: ## Generate Wails bindings
 	go generate ./...
 
-build: generate ## Build the production binary
+build: deps generate ## Build the production binary
 	wails build
 
 cover: ## Run tests with coverage

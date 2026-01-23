@@ -1,9 +1,9 @@
+// Package main is the entry point for the Wails application.
 package main
 
 import (
 	"embed"
 	"log"
-
 	"lottery-picker/internal/adapters/primary/wailsapp"
 	"lottery-picker/internal/adapters/secondary/random"
 	"lottery-picker/internal/core/services"
@@ -11,6 +11,16 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+)
+
+const (
+	appTitle  = "6/49 Lottery Picker"
+	appWidth  = 1024
+	appHeight = 768
+	bgRed     = 255
+	bgGreen   = 255
+	bgBlue    = 255
+	bgAlpha   = 1
 )
 
 //go:embed all:frontend/dist
@@ -28,19 +38,16 @@ func main() {
 
 	// 4. Run Wails Application
 	err := wails.Run(&options.App{
-		Title:  "6/49 Lottery Picker",
-		Width:  1024,
-		Height: 768,
+		Title:  appTitle,
+		Width:  appWidth,
+		Height: appHeight,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 255, G: 255, B: 255, A: 1},
+		BackgroundColour: &options.RGBA{R: bgRed, G: bgGreen, B: bgBlue, A: bgAlpha},
 		OnStartup:        app.Startup,
-		Bind: []interface{}{
-			app,
-		},
+		Bind:             []any{app},
 	})
-
 	if err != nil {
 		log.Fatal("Error:", err.Error())
 	}

@@ -1,6 +1,8 @@
+// Package services implements the core business logic input ports.
 package services
 
 import (
+	"fmt"
 	"lottery-picker/internal/core/domain"
 	"lottery-picker/internal/core/ports"
 )
@@ -17,9 +19,15 @@ func NewLotteryService(rng ports.RandomProvider) *LotteryService {
 
 // GenerateTicket creates a new valid lottery ticket using the random provider.
 func (s *LotteryService) GenerateTicket() (*domain.Ticket, error) {
-	numbers, err := s.rng.GetSixUniqueNumbers(1, 49)
+	numbers, err := s.rng.GetSixUniqueNumbers(domain.MinNumber, domain.MaxNumber)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate random numbers: %w", err)
 	}
-	return domain.NewTicket(numbers)
+
+	ticket, err := domain.NewTicket(numbers)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ticket: %w", err)
+	}
+
+	return ticket, nil
 }

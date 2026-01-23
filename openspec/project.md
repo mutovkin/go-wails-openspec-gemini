@@ -64,6 +64,7 @@ The application strictly follows Hexagonal Architecture to decouple business log
 - **Integration Tests**:
     - Adapter integration tests where feasible.
 - **Frontend Tests**: Basic component testing for UI interaction.
+- **Verification**: Run `make fmt` and `make lint` after completing each OpenSpec task to ensure code quality and formatting compliance.
 
 ### Git Workflow
 - Feature branches.
