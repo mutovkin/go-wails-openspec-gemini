@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}$-వాతావరణం${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -107,10 +107,12 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
+              per_page: 100
             });
 
             const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes(header);
+              // Look for the header and ensure it's the github-actions bot
+              return comment.user.login === 'github-actions[bot]' && comment.body.includes(header);
             });
 
             if (botComment) {
