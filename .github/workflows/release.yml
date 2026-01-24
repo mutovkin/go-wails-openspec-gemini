@@ -1,0 +1,130 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Version increment'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-flow:
+    name: Release Flow
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Git Config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Calculate Next Version
+        id: version
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LAST_TAG"
+          
+          VERSION=${LAST_TAG#v}
+          IFS='.' read -r -a parts <<< "$VERSION"
+          MAJOR=${parts[0]}
+          MINOR=${parts[1]}
+          PATCH=${parts[2]}
+          
+          case "${{ inputs.increment }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "Next version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Handle Branch Logic
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.new_version }}
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          if [[ "$CURRENT_BRANCH" == "develop" ]]; then
+            echo "Standard Release Flow (develop -> master)"
+            git checkout master
+            git merge --ff-only develop
+            git tag "$NEW_VERSION"
+            git push origin master --tags
+            
+            # Backfill master to develop to ensure sync (should be no-op if FF)
+            git checkout develop
+            git merge --ff-only master
+            git push origin develop
+            
+          elif [[ "$CURRENT_BRANCH" == "master" ]]; then
+            echo "Hotfix Release Flow (master)"
+            git tag "$NEW_VERSION"
+            git push origin master --tags
+            
+            echo "Rebasing develop on master..."
+            git checkout develop
+            git rebase master
+            git push origin develop --force-with-lease
+            
+          else
+            echo "Error: Release must be triggered from 'develop' or 'master'."
+            exit 1
+          fi
+
+  build-artifacts:
+    name: Build Artifacts
+    needs: release-flow
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-flow.outputs.new_version }}
+      
+      - name: Build
+        uses: ./.github/actions/build-wails
+        with:
+          go-version: '1.25'
+          node-version: '24'
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lottery-picker-${{ matrix.os }}
+          path: build/bin/*
+
+  publish-release:
+    name: Publish Release
+    needs: [release-flow, build-artifacts]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-flow.outputs.new_version }}
+          generate_release_notes: true
+          files: artifacts/**/*
