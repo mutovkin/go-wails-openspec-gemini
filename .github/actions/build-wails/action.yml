@@ -43,4 +43,8 @@ runs:
     - name: Build
       shell: bash
       run: |
-        wails build ${{ inputs.build-flags }}
+        FLAGS="${{ inputs.build-flags }}"
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          FLAGS="$FLAGS -tags webkit2_41"
+        fi
+        wails build $FLAGS
