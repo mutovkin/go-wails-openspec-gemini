@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}$-వాతావరణం${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -99,20 +99,32 @@ jobs:
             const build = '${{ needs.build.result }}';
             
             const icon = (status) => status === 'success' ? '✅' : '❌';
+            const header = '### CI Status';
             
-            const body = `
-            ### CI Status
+            const body = `${header}\n\n| Job | Status |\n| --- | --- |\n| Lint | ${icon(lint)} |\n| Test | ${icon(test)} |\n| Build | ${icon(build)} |`;
             
-            | Job | Status |
-            | --- | --- |
-            | Lint | ${icon(lint)} |
-            | Test | ${icon(test)} |
-            | Build | ${icon(build)} |
-            `;
-            
-            github.rest.issues.createComment({
+            const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: body
-            })
+            });
+
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes(header);
+            });
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                comment_id: botComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }

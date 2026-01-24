@@ -2,7 +2,7 @@
 - [x] 1.1 Create `.github/actions/build-wails/action.yml` composite action to encapsulate Wails setup and build steps (DRY).
     - [x] 1.1.1 Implement dependency caching (Go/Node).
 - [x] 1.2 Create `.github/workflows/ci.yml` to run on PRs targeting `develop` and `master` (hotfixes).
-    - [x] 1.2.1 Configure explicit PR comments/annotations for failures (formatting, linting, tests).
+    - [x] 1.2.1 Configure explicit PR comments/annotations for failures (formatting, linting, tests). Updated to replace existing comments.
 - [x] 1.3 Implement `golangci-lint` step using the official action (pinned).
 - [x] 1.4 Implement `go test` step.
 - [x] 1.5 Implement `wails build` step using the custom composite action.
