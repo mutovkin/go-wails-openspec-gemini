@@ -24,12 +24,9 @@ jobs:
     outputs:
       new_version: ${{ steps.version.outputs.new_version }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # Using GITHUB_TOKEN is usually enough if permissions are set, 
-          # but for triggering other workflows or strict protections, a PAT might be needed. 
-          # We assume default token is sufficient for now.
 
       - name: Git Config
         run: |
@@ -100,18 +97,18 @@ jobs:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.release-flow.outputs.new_version }}
       
       - name: Build
         uses: ./.github/actions/build-wails
         with:
-          go-version: '1.23'
-          node-version: '20'
+          go-version: '1.25'
+          node-version: '24'
           
       - name: Upload Artifact
-        uses: actions/upload-artifact@4cec3d8bdb045f68db653a9bcc7f8f6706c3d965 # v4.6.0
+        uses: actions/upload-artifact@v4
         with:
           name: lottery-picker-${{ matrix.os }}
           path: build/bin/*
@@ -121,12 +118,12 @@ jobs:
     needs: [release-flow, build-artifacts]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9 (Actually v4.1.8 is current stable, searching SHA for v4)
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
           
       - name: Create Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.release-flow.outputs.new_version }}
           generate_release_notes: true
