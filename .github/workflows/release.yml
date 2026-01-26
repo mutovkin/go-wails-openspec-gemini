@@ -134,7 +134,7 @@ jobs:
           elif [[ "$OS" == "Windows" ]]; then
             cd build/bin
             # Wails creates installer and exe. We want the installer.
-            INSTALLER=$(find . -maxdepth 1 -name "lottery-picker-installer.exe" -o -name "*installer.exe" | head -n 1)
+            INSTALLER=$(find . -maxdepth 1 \( -name "lottery-picker-installer.exe" -o -name "*installer.exe" \) | head -n 1)
             if [ -z "$INSTALLER" ]; then
               # Fallback to raw exe if installer missing
               zip "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.exe"
