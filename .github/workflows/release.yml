@@ -93,8 +93,18 @@ jobs:
     name: Build Artifacts
     needs: release-flow
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        include:
+          - os: macos-latest
+            platform: darwin/arm64
+            suffix: macos-arm64
+          - os: windows-latest
+            platform: windows/amd64
+            suffix: windows-amd64
+          - os: ubuntu-latest
+            platform: linux/amd64
+            suffix: linux-amd64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -106,12 +116,43 @@ jobs:
         with:
           go-version: '1.25'
           node-version: '24'
+          build-flags: -platform ${{ matrix.platform }} -package
+          
+      - name: Package and Rename
+        shell: bash
+        run: |
+          VERSION="${{ needs.release-flow.outputs.new_version }}"
+          OS="${{ runner.os }}"
+          SUFFIX="${{ matrix.suffix }}"
+          
+          mkdir -p dist-assets
+          
+          if [[ "$OS" == "macOS" ]]; then
+            cd build/bin
+            # Wails creates .app directory
+            zip -r "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.app"
+          elif [[ "$OS" == "Windows" ]]; then
+            cd build/bin
+            # Wails creates installer and exe. We want the installer.
+            INSTALLER=$(find . -maxdepth 1 \( -name "lottery-picker-installer.exe" -o -name "*installer.exe" \) | head -n 1)
+            if [ -z "$INSTALLER" ]; then
+              # Fallback to raw exe if installer missing
+              zip "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.exe"
+            else
+              zip "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "$INSTALLER"
+            fi
+          elif [[ "$OS" == "Linux" ]]; then
+            cd build/bin
+            # Wails creates a binary.
+            mv "lottery-picker" "LotteryPicker-$VERSION-$SUFFIX"
+            tar -czf "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.tar.gz" "LotteryPicker-$VERSION-$SUFFIX"
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lottery-picker-${{ matrix.os }}
-          path: build/bin/*
+          name: assets-${{ matrix.suffix }}
+          path: dist-assets/*
 
   publish-release:
     name: Publish Release
@@ -120,11 +161,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: all-assets
+          pattern: assets-*
+          merge-multiple: true
           
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.release-flow.outputs.new_version }}
           generate_release_notes: true
-          files: artifacts/**/*
+          files: all-assets/*

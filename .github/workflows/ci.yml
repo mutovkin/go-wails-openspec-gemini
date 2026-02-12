@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}$-వాతావరణం${{ github.ref }}
+  group: ${{ github.workflow }}-వాతావరణം${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.8.0
-          args: --timeout=5m
+          args: --timeout=5m --build-tags webkit2_41
 
   test:
     name: Unit Tests
@@ -73,7 +73,7 @@ jobs:
           npm run build
 
       - name: Run Tests
-        run: go test -v ./...
+        run: go test -v -tags webkit2_41 ./...
 
   build:
     name: Build
