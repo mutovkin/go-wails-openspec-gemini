@@ -1,0 +1,32 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  6/49 lottery ticket generator — GUI desktop app.
+  Tech stack: Go (latest stable, at least 1.26), Wails v2, Vue.js (Composition API), Material Design 3, golangci-lint v2.9, Make.
+  Architecture: Strict Hexagonal (Ports & Adapters).
+    - Domain (internal/core/domain): Pure entities, no external deps.
+    - Ports (internal/core/ports): Input (TicketGenerator) and Output (RandomProvider) interfaces.
+    - Services (internal/core/services): Use-case implementations.
+    - Primary adapter (internal/adapters/primary/wailsapp): Wails App binding.
+    - Secondary adapter (internal/adapters/secondary/random): Crypto-secure RNG.
+  Code style: Go idioms (gofmt), Vue <script setup>, Conventional Commits.
+  Git flow: develop (default PR target), master (stable, read-only). Feature branches squash-merge to develop. Linear history required.
+  Releases: Manual trigger via GitHub Actions workflow_dispatch. Auto-tag, FF merge develop→master, build artifacts, create GitHub Release.
+  Domain constraints: 6 unique numbers per ticket, range 1–49, cryptographically secure randomness required.
+
+rules:
+  proposal:
+    - Identify impact on hexagonal layer boundaries
+    - Consider backwards compatibility for Wails bindings
+  specs:
+    - Reference existing patterns in the codebase before inventing new ones
+    - Include domain validation rules (uniqueness, range 1–49)
+  design:
+    - Maintain hexagonal architecture — no domain dependencies on adapters
+    - Include PlantUML diagrams for structural changes
+  tasks:
+    - Follow TDD — write tests before implementation
+    - Core logic (services, domain) must have 100% test coverage; mock Output Ports for determinism
+    - Run `make fmt` and `make lint` after completing each task
+    - Break into small, independently verifiable steps
