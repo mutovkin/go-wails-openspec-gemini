@@ -99,12 +99,15 @@ jobs:
           - os: macos-latest
             platform: darwin/arm64
             suffix: macos-arm64
+            extra-flags: ""
           - os: windows-latest
             platform: windows/amd64
             suffix: windows-amd64
+            extra-flags: "-nsis"
           - os: ubuntu-latest
             platform: linux/amd64
             suffix: linux-amd64
+            extra-flags: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -116,7 +119,7 @@ jobs:
         with:
           go-version: "1.25"
           node-version: "24"
-          build-flags: -platform ${{ matrix.platform }}
+          build-flags: -platform ${{ matrix.platform }} ${{ matrix.extra-flags }}
 
       - name: Package and Rename
         shell: bash
@@ -133,13 +136,12 @@ jobs:
             zip -r "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.app"
           elif [[ "$OS" == "Windows" ]]; then
             cd build/bin
-            # Wails creates installer and exe. We want the installer.
-            INSTALLER=$(find . -maxdepth 1 \( -name "lottery-picker-installer.exe" -o -name "*installer.exe" \) | head -n 1)
-            if [ -z "$INSTALLER" ]; then
-              # Fallback to raw exe if installer missing
-              zip "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.exe"
+            # Wails v2 with -nsis produces an NSIS installer
+            INSTALLER=$(find . -maxdepth 1 -name "*installer.exe" | head -n 1)
+            if [ -n "$INSTALLER" ]; then
+              7z a "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "$INSTALLER"
             else
-              zip "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "$INSTALLER"
+              7z a "../../dist-assets/LotteryPicker-$VERSION-$SUFFIX.zip" "lottery-picker.exe"
             fi
           elif [[ "$OS" == "Linux" ]]; then
             cd build/bin
